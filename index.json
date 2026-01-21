@@ -1,0 +1,174 @@
+{
+  "timestamp": "2026-01-16T00:00:00+08:00",
+  "project": {
+    "name": "research-workflow-assistant",
+    "version": "0.1.0",
+    "description": "Dialogue-driven research workflow assistant (Intent -> Scenario -> Module DAG)",
+    "language": "Python",
+    "python_version": ">=3.10"
+  },
+  "modules": [
+    {
+      "path": "src/research_workflow_assistant",
+      "name": "research_workflow_assistant",
+      "description": "Core research workflow assistant package",
+      "entry": "src/research_workflow_assistant/__init__.py",
+      "submodules": [
+        {
+          "path": "src/research_workflow_assistant/core",
+          "name": "core",
+          "description": "Core components (intent recognition, dependency resolution, execution preview)",
+          "status": "implemented",
+          "files": [
+            "intent.py",
+            "router.py",
+            "resolver.py",
+            "preview.py",
+            "types.py",
+            "exceptions.py"
+          ]
+        },
+        {
+          "path": "src/research_workflow_assistant/registry",
+          "name": "registry",
+          "description": "Registry loaders (scenarios, modules, intent mappings)",
+          "status": "implemented",
+          "files": [
+            "__init__.py",
+            "data/intent_taxonomy.yaml",
+            "data/scenarios.yaml",
+            "data/intent_mapping.yaml"
+          ]
+        },
+        {
+          "path": "src/research_workflow_assistant/modules",
+          "name": "modules",
+          "description": "Domain modules (14/58 implemented)",
+          "status": "partial",
+          "implemented": [
+            "kb/index.py",
+            "kb/query.py",
+            "kb/curator.py",
+            "kb/status.py",
+            "data/ingest.py",
+            "data/preprocess.py",
+            "data/validate.py",
+            "data/export.py",
+            "data/timeseries.py",
+            "results/visualize.py",
+            "results/table.py",
+            "results/statistics.py",
+            "results/compare.py",
+            "results/report.py"
+          ],
+          "pending_categories": [
+            "simulation",
+            "inverse",
+            "literature",
+            "idea",
+            "patent",
+            "report",
+            "system",
+            "workflow"
+          ]
+        }
+      ],
+      "tests_dir": "tests",
+      "tests_exist": true,
+      "test_files": [
+        "test_intent.py",
+        "test_router.py",
+        "test_resolver.py",
+        "test_preview.py",
+        "test_app.py"
+      ],
+      "config_files": ["pyproject.toml"]
+    },
+    {
+      "path": "plan",
+      "name": "plan",
+      "description": "Implementation plan documents (18 split documents)",
+      "entry": "plan/README.md",
+      "document_count": 18
+    },
+    {
+      "path": ".claude/commands/BMad",
+      "name": "BMad",
+      "description": "BMad Method command framework (agents + tasks)",
+      "entry": ".claude/commands/BMad/agents/bmad-master.md",
+      "agents_count": 10,
+      "tasks_count": 21
+    },
+    {
+      "path": ".spec-workflow",
+      "name": "spec-workflow",
+      "description": "Specification workflow templates",
+      "entry": ".spec-workflow/user-templates/README.md",
+      "templates_count": 6
+    }
+  ],
+  "coverage": {
+    "total_files": 95,
+    "scanned_files": 65,
+    "coverage_percent": 68.4,
+    "ignored_patterns": [
+      ".git/**",
+      ".ace-tool/**",
+      "node_modules/**",
+      "dist/**",
+      "*.lock",
+      "*.log",
+      "__pycache__/**"
+    ],
+    "ignored_count": 30
+  },
+  "implementation_status": {
+    "phase_1_core_framework": "100%",
+    "phase_2_core_modules": "85%",
+    "phase_3_simulation": "0%",
+    "phase_4_ml_inverse": "0%",
+    "phase_5_literature_writing": "0%",
+    "phase_6_patent_system": "0%",
+    "phase_7_integration": "0%"
+  },
+  "key_metrics": {
+    "intent_categories": 12,
+    "sub_intents": 62,
+    "scenarios": 17,
+    "modules_planned": 58,
+    "modules_implemented": 14
+  },
+  "gaps": {
+    "missing_tests": false,
+    "test_coverage": "partial",
+    "missing_implementations": [
+      "modules/simulation/* (Phase 3)",
+      "modules/inverse/* (Phase 4)",
+      "modules/literature/* (Phase 5)",
+      "modules/idea/* (Phase 5)",
+      "modules/patent/* (Phase 6)",
+      "modules/system/* (Phase 6)",
+      "modules/workflow/* (Phase 7)"
+    ],
+    "incomplete_docs": []
+  },
+  "truncated": false,
+  "next_steps": [
+    "Implement remaining P2 module: KBExport",
+    "Begin Phase 3: Simulation integration (SimulationScriptAnalyze, ODBExtractor)",
+    "Add more comprehensive test coverage",
+    "Implement Phase 4: ML/Inverse problem modules"
+  ],
+  "changelog": [
+    {
+      "date": "2026-01-16T00:00:00+08:00",
+      "action": "update",
+      "description": "Full architecture scan - updated module status, coverage metrics"
+    },
+    {
+      "date": "2026-01-09T00:55:02+08:00",
+      "action": "init",
+      "description": "Initial project architecture index"
+    }
+  ]
+}

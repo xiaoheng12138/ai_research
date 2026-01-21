@@ -1,0 +1,162 @@
+# 场景注册表 - 基于 plan/02_scenarios_part1.md + plan/03_scenarios_part2.md
+
+A:
+  name: "文献提取分析"
+  description: "从文献中提取关键信息并存入知识库"
+  trigger_intents: ["LITERATURE.EXTRACT", "LITERATURE.SUMMARIZE", "KB.INGEST"]
+  module_sequence: ["IngestSources", "ParseDocument", "NormalizeAndSegment", "ExtractResearchInsights", "IndexToKnowledgeBase"]
+  cost_level: "low"
+  risk_level: "none"
+  confirm_required: false
+
+A2:
+  name: "文献检索对比"
+  description: "从知识库检索或对比多篇文献"
+  trigger_intents: ["LITERATURE.COMPARE", "LITERATURE.SEARCH"]
+  module_sequence: ["QueryRetrieveKB", "ExtractResearchInsights", "CompareAnalysis", "ReportComposer"]
+  cost_level: "low"
+  risk_level: "none"
+  confirm_required: false
+
+B:
+  name: "想法评估完善"
+  description: "评估研究想法可行性并提供改进建议"
+  trigger_intents: ["IDEA.EVALUATE", "IDEA.REFINE"]
+  module_sequence: ["IdeaIntake", "IdeaStructure", "FeasibilityScore", "QueryRetrieveKB", "ReportComposer"]
+  cost_level: "low"
+  risk_level: "none"
+  confirm_required: false
+
+C:
+  name: "想法头脑风暴"
+  description: "基于现有研究生成新想法"
+  trigger_intents: ["IDEA.BRAINSTORM"]
+  module_sequence: ["QueryRetrieveKB", "IdeaIntake", "IdeaStructure", "ReportComposer"]
+  cost_level: "low"
+  risk_level: "none"
+  confirm_required: false
+
+D:
+  name: "专利文稿撰写"
+  description: "撰写专利申请文稿"
+  trigger_intents: ["PATENT.DRAFT", "PATENT.CLAIM", "PATENT.FIGURE"]
+  module_sequence: ["IdeaIntake", "PriorArtAnalyze", "ClaimGenerate", "SpecDraftGenerate", "FigureSuggestion", "PatentClaimReview", "ReportComposer"]
+  cost_level: "high"
+  risk_level: "high"
+  confirm_required: true
+  preview_required: true
+  warning: "专利文稿仅供参考，请专业代理人审核"
+
+D2:
+  name: "专利检索分析"
+  description: "专利查新与现有技术分析"
+  trigger_intents: ["PATENT.SEARCH", "PATENT.COMPARE"]
+  module_sequence: ["PriorArtAnalyze", "CompareAnalysis", "ReportComposer"]
+  cost_level: "medium"
+  risk_level: "low"
+  confirm_required: false
+
+E:
+  name: "自定义工作流组合"
+  description: "用户自定义模块组合"
+  trigger_intents: ["WORKFLOW.COMPOSE"]
+  module_sequence: "user_defined"
+  cost_level: "varies"
+  risk_level: "varies"
+  confirm_required: true
+
+F:
+  name: "仿真脚本修改"
+  description: "分析和修改ABAQUS Python脚本"
+  trigger_intents: ["SIMULATION.MODIFY", "SIMULATION.ANALYZE", "SIMULATION.VALIDATE", "SIMULATION.PREPROCESS"]
+  module_sequence: ["SimulationScriptAnalyze", "SimulationScriptModify", "SimulationValidate"]
+  cost_level: "medium"
+  risk_level: "medium"
+  confirm_required: true
+  preview_required: true
+  codex_mode: "diff"
+
+G:
+  name: "批量仿真提交"
+  description: "参数扫描和批量仿真作业提交"
+  trigger_intents: ["SIMULATION.BATCH", "SIMULATION.RUN_SUBMIT"]
+  module_sequence: ["SimulationScriptAnalyze", "BatchRunnerCreate", "JobSubmitter"]
+  cost_level: "very_high"
+  risk_level: "high"
+  confirm_required: true
+  preview_required: true
+
+H:
+  name: "仿真调试诊断"
+  description: "诊断仿真失败原因并提供修复建议"
+  trigger_intents: ["SIMULATION.DEBUG"]
+  module_sequence: ["SimulationDebug", "SimulationScriptModify", "SimulationValidate"]
+  cost_level: "medium"
+  risk_level: "low"
+  confirm_required: false
+  codex_mode: "debug"
+
+I:
+  name: "ODB数据提取与后处理"
+  description: "从ABAQUS ODB提取数据并进行后处理分析"
+  trigger_intents: ["SIMULATION.EXTRACT_ODB", "SIMULATION.POSTPROCESS", "SIMULATION.VISUALIZE", "RESULTS.PLOT", "RESULTS.TABLE", "RESULTS.STATISTICS"]
+  module_sequence: ["ODBExtractor", "DataPreprocess", "ResultsVisualize", "ResultsTableGen", "StatisticsAnalyze", "ReportComposer"]
+  cost_level: "medium"
+  risk_level: "low"
+  confirm_required: false
+
+J:
+  name: "传感器数据处理"
+  description: "导入和预处理传感器/测量数据"
+  trigger_intents: ["DATA.IMPORT", "DATA.PREPROCESS", "DATA.TIMESERIES", "DATA.EXPORT"]
+  module_sequence: ["DataIngest", "DataPreprocess", "DataValidate", "TimeseriesAnalyze", "DataExport", "IndexToKnowledgeBase"]
+  cost_level: "low"
+  risk_level: "none"
+  confirm_required: false
+
+K:
+  name: "仿真-实测对比分析"
+  description: "对比仿真结果与实测数据"
+  trigger_intents: ["DATA.COMPARE_SIM", "RESULTS.COMPARE"]
+  module_sequence: ["ODBExtractor", "DataPreprocess", "CompareAnalysis", "ResultsVisualize", "ReportComposer"]
+  cost_level: "medium"
+  risk_level: "none"
+  confirm_required: false
+
+L:
+  name: "ML载荷识别训练"
+  description: "训练机器学习模型进行载荷识别"
+  trigger_intents: ["INVERSE.ML_TRAIN", "INVERSE.LOAD_SEPARATE", "INVERSE.FEATURE_EXTRACT", "INVERSE.ML_PREDICT", "INVERSE.UNCERTAINTY"]
+  module_sequence: ["DataPipelineBuild", "FeatureExtractor", "MLModelTrain", "MLModelValidate", "ReportComposer"]
+  cost_level: "high"
+  risk_level: "medium"
+  confirm_required: true
+  preview_required: true
+
+M:
+  name: "敏感性与参数标定"
+  description: "敏感性分析和参数可辨识性研究"
+  trigger_intents: ["INVERSE.IDENTIFIABILITY", "SIMULATION.SENSITIVITY", "SIMULATION.CALIBRATE"]
+  module_sequence: ["SimulationScriptAnalyze", "SensitivityDesign", "BatchRunnerCreate", "SensitivityAnalyze", "IdentifiabilityAnalyze", "ReportComposer"]
+  cost_level: "very_high"
+  risk_level: "medium"
+  confirm_required: true
+  preview_required: true
+
+N:
+  name: "论文章节撰写"
+  description: "撰写论文特定章节或技术报告"
+  trigger_intents: ["REPORT.PAPER_SECTION", "REPORT.PAPER_DRAFT", "REPORT.TECH_REPORT", "REPORT.ABSTRACT", "REPORT.PRESENTATION"]
+  module_sequence: ["QueryRetrieveKB", "PaperSectionDraft", "ReportComposer"]
+  cost_level: "medium"
+  risk_level: "low"
+  confirm_required: false
+
+O:
+  name: "帮助与引导"
+  description: "系统帮助和功能引导"
+  trigger_intents: ["CHAT.GREETING", "CHAT.HELP", "CHAT.FEEDBACK", "CHAT.CLARIFY"]
+  module_sequence: []
+  cost_level: "none"
+  risk_level: "none"
+  confirm_required: false

@@ -1,0 +1,82 @@
+# UI 配置 - CCG WebUI 复用层
+# 版本: 1.0
+# 更新时间: 2026-01-20
+
+version: "1.0"
+last_updated: "2026-01-20"
+
+# 默认关闭 WebUI
+enabled: false
+
+# 服务器配置
+server:
+  host: "127.0.0.1"
+  port: 8765
+  protocol: "http"
+
+# Trace 配置
+trace:
+  # trace 级别: none / brief / detailed
+  level: "brief"
+
+  # 写入目录
+  output_dir: ".research/logs/traces"
+
+  # 轮转策略
+  rotation:
+    max_files: 100
+    max_size_mb: 50
+    max_age_days: 30
+
+# 事件推送配置
+events:
+  # 推送协议: sse / websocket
+  protocol: "sse"
+
+  # 事件类型
+  types:
+    - plan_start
+    - plan_complete
+    - model_call_start
+    - model_call_complete
+    - evidence_gate
+    - artifact_created
+    - error
+
+# UI 页面配置
+ui:
+  # 左侧 Run 列表
+  run_list:
+    show_risk_level: true
+    show_command: true
+    show_timestamp: true
+    max_items: 50
+
+  # 中间事件时间线
+  timeline:
+    show_plan: true
+    show_calls: true
+    show_evidence: true
+    show_artifacts: true
+
+  # 右侧双面板
+  output_panels:
+    codex:
+      format: "json"
+      show_summary: true
+    gemini:
+      format: "markdown"
+      show_evidence_gate: true
+      annotations:
+        verified: "✅"
+        unverified: "⚠️"
+        rejected: "❌"
+
+# 安全配置
+security:
+  # 脱敏配置
+  sanitize:
+    enabled: true
+    # 不记录完整 prompt/response
+    truncate_content: true
+    max_content_length: 2000

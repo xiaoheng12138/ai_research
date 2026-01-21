@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://research-workflow-assistant/schemas/trace.schema.json",
+  "title": "Trace Event Schema",
+  "description": "Minimal trace event structure for WebUI and logging",
+  "type": "object",
+  "required": ["ts", "run_id", "event_type"],
+  "properties": {
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event timestamp (ISO 8601)"
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Unique run identifier"
+    },
+    "task_id": {
+      "type": "string",
+      "description": "Associated task identifier"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "plan_start",
+        "plan_complete",
+        "step_start",
+        "step_complete",
+        "model_call_start",
+        "model_call_complete",
+        "model_call_error",
+        "evidence_gate",
+        "artifact_created",
+        "session_update",
+        "error",
+        "warning",
+        "info"
+      ],
+      "description": "Event type"
+    },
+    "backend": {
+      "type": "string",
+      "enum": ["claude", "codex", "gemini"],
+      "description": "Model backend (for model events)"
+    },
+    "role": {
+      "type": "string",
+      "description": "Role prompt used (for model events)"
+    },
+    "phase": {
+      "type": "string",
+      "description": "Execution phase"
+    },
+    "step_id": {
+      "type": "integer",
+      "description": "Step number (for step events)"
+    },
+    "content": {
+      "type": "object",
+      "description": "Event-specific content (flexible schema)",
+      "additionalProperties": true
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Related artifact paths"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "description": "Duration for completion events"
+    },
+    "error": {
+      "type": "string",
+      "description": "Error message (for error events)"
+    },
+    "level": {
+      "type": "string",
+      "enum": ["debug", "info", "warn", "error"],
+      "default": "info"
+    }
+  },
+  "additionalProperties": false
+}

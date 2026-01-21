@@ -1,0 +1,154 @@
+# 能力到 MCP 工具的权威映射
+# 基于 .claude/settings.local.json 中的实际可用工具
+
+version: "1.0"
+last_updated: "2026-01-18"
+
+# 文献能力 → mcp__semantic-scholar
+literature:
+  lit.search:
+    description: "论文检索"
+    mcp_server: semantic-scholar
+    tools:
+      - mcp__semantic-scholar__papers-search-basic
+      - mcp__semantic-scholar__paper-search-advanced
+    fallback: mcp__grok-search__web_search
+
+  lit.details:
+    description: "论文详情获取"
+    mcp_server: semantic-scholar
+    tools:
+      - mcp__semantic-scholar__get-paper-abstract
+      - mcp__semantic-scholar__papers-batch
+    fallback: null
+
+  lit.pdf_extract:
+    description: "PDF 全文提取"
+    mcp_server: semantic-scholar
+    tools:
+      - mcp__semantic-scholar__get-paper-abstract
+    fallback: manual_upload
+    note: "arXiv/Wiley 开放获取论文可直接获取"
+
+  lit.citation_graph:
+    description: "引用网络分析"
+    mcp_server: semantic-scholar
+    tools:
+      - mcp__semantic-scholar__papers-batch
+    fallback: null
+    note: "引用关系需通过批量查询构建"
+
+# 代码文档能力 → mcp__context7
+documentation:
+  docs.resolve:
+    description: "解析库名到 Context7 ID"
+    mcp_server: context7
+    tools:
+      - mcp__context7__resolve-library-id
+    fallback: null
+
+  docs.query:
+    description: "获取库文档和代码示例"
+    mcp_server: context7
+    tools:
+      - mcp__context7__query-docs
+    fallback: mcp__grok-search__web_search
+
+# 知识库能力 → 用户配置
+knowledge:
+  kb.index:
+    description: "知识库索引"
+    mcp_server: user_configured
+    tools: []
+    fallback: local_json
+    note: "需用户配置向量数据库 MCP (如 supabase, pinecone)"
+
+  kb.query:
+    description: "知识库检索"
+    mcp_server: user_configured
+    tools: []
+    fallback: local_json
+
+  kb.export:
+    description: "知识库导出"
+    mcp_server: user_configured
+    tools: []
+    fallback: local_json
+
+# 上下文检索能力 → mcp__ace-tool
+context:
+  context.search:
+    description: "代码上下文检索"
+    mcp_server: ace-tool
+    tools:
+      - mcp__ace-tool__search_context
+    fallback: null
+    required: true
+
+# 网络搜索能力 → mcp__grok-search
+web:
+  web.search:
+    description: "网络搜索"
+    mcp_server: grok-search
+    tools:
+      - mcp__grok-search__web_search
+    fallback: null
+
+  web.fetch:
+    description: "网页内容获取"
+    mcp_server: grok-search
+    tools:
+      - mcp__grok-search__web_fetch
+    fallback: null
+
+# 计算能力 → 内置
+compute:
+  shell.run:
+    description: "本地命令执行"
+    builtin: Bash
+    fallback: null
+
+  hpc.submit:
+    description: "HPC 作业提交"
+    builtin: Bash
+    fallback: null
+    note: "需用户配置 HPC 环境"
+
+  abaqus.check:
+    description: "ABAQUS 许可检查"
+    builtin: Bash
+    command: "abaqus licensing lmstat -a"
+    fallback: null
+
+# 数据处理能力 → 用户配置
+data:
+  data.load:
+    description: "数据加载"
+    builtin: Bash
+    command: "python -c 'import pandas as pd; ...'"
+    fallback: null
+
+  data.plot:
+    description: "可视化绘图"
+    mcp_server: user_configured
+    tools: []
+    fallback: python_matplotlib
+    note: "可配置 matplotlib-mcp 或 vega-lite"
+
+# ML 能力 → 用户配置
+ml:
+  ml.train:
+    description: "模型训练"
+    builtin: Bash
+    command: "python train.py ..."
+    fallback: null
+    note: "需用户配置 ML 环境 (scikit-learn, pytorch 等)"
+
+# 专利检索能力 → 待配置
+patent:
+  patent.search:
+    description: "专利检索"
+    mcp_server: not_available
+    tools: []
+    fallback: mcp__grok-search__web_search
+    note: "暂无专利 MCP，使用网络搜索降级"

@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://research-workflow-assistant/schemas/plan.schema.json",
+  "title": "Plan Card Schema",
+  "description": "Research workflow execution plan structure",
+  "type": "object",
+  "required": ["task_id", "created_at", "goal", "steps", "risk_level"],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "description": "Unique task identifier",
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Plan creation timestamp"
+    },
+    "goal": {
+      "type": "string",
+      "description": "Task goal description"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["none", "low", "medium", "high"],
+      "description": "Overall risk level"
+    },
+    "collaboration_mode": {
+      "type": "string",
+      "enum": ["S", "X", "T"],
+      "description": "S=Single, X=Cross-validation, T=Triangle"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["step_id", "action", "risk"],
+        "properties": {
+          "step_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "action": {
+            "type": "string"
+          },
+          "risk": {
+            "type": "string",
+            "enum": ["none", "low", "medium", "high"]
+          },
+          "expected_impact": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string",
+            "enum": ["claude", "codex", "gemini"]
+          },
+          "role": {
+            "type": "string"
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Required capabilities for execution"
+    },
+    "expected_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "path": { "type": "string" },
+          "type": { "type": "string" }
+        }
+      }
+    },
+    "confirm_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "preview_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "rollback_strategy": {
+      "type": "string"
+    },
+    "validation_points": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
