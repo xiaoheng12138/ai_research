@@ -1,77 +1,233 @@
-# /ai_research:research
+---
+description: '文献检索'
+---
 
-## Purpose
+# /ai_research:research - 文献检索工作流
 
-Literature search, paper discovery, and KB ingestion guidance.
+面向科研主题做系统化文献搜索、筛选。输出**可直接用于 KB 建设**的候选论文清单、检索式、筛选标准，并生成可追溯的 manifest。
 
-## Inputs
+**本命令不编造论文条目；每条候选必须来自检索工具返回（含 paperId/DOI/URL 之一）。**
 
-1. **Research Topic/Question** (required): What are you researching?
-2. **Scope** (optional): Broad survey or focused search?
-3. **Year Range** (optional): Filter by publication years?
+---
 
-## Steps
+## 使用方法
 
-1. **Domain Scan** (optional): Use `mcp__grok-search__web_search` for keyword clustering.
-2. **Build Queries**: Construct semantic scholar search queries.
-3. **Search Papers**: Call `mcp__semantic-scholar__papers-search-basic`.
-4. **Advanced Filter** (optional): Use `mcp__semantic-scholar__paper-search-advanced` if needed.
-5. **Present Candidates**: Show top 20 papers with metadata.
-6. **User Selection**: Ask user to select papers for ingestion.
-7. **Generate KB Instructions**: Provide MinerU extraction steps.
-8. **Output Artifacts**: Write to `artifacts/research/<run_id>.md` + manifest.
+```bash
+/ai_research:research <研究主题/研究问题>
+```
 
-## Tools
+---
 
-| Tool | Purpose |
-|------|---------|
-| `mcp__grok-search__web_search` | Domain scan, keyword discovery |
-| `mcp__semantic-scholar__papers-search-basic` | Paper search |
-| `mcp__semantic-scholar__paper-search-advanced` | Filtered search |
-| `clock` agent | Generate run_id |
+## 你的角色
 
-## Outputs
+你是**研究检索协调者**，负责把“模糊问题”变成“可检索、可筛选、可入库”的流程与产物：
 
-- `artifacts/research/<run_id>.md` (primary)
-- `artifacts/manifest/<run_id>.json` (manifest)
-- `artifacts/research/<run_id>.bib` (optional, user-selected papers)
+- 把研究问题改写成一组高质量检索式（中英双语、同义词扩展、布尔组合）
+- 用工具检索论文并形成候选池
+- 去重、排序、给出入选理由与阅读建议
+- 输出 artifacts + manifest（必要时输出 .bib）
 
-## Output Structure
+---
+
+## 工具与职责
+
+| 工具/组件 | 用途 |
+|---|---|
+| `mcp__grok-search__web_search` | 领域扫描：关键词簇、术语、同义词、热门子方向、可能的经典工作线索 |
+| `mcp__semantic-scholar__papers-search-basic` | 基础检索：快速获得候选论文列表 |
+| `mcp__semantic-scholar__paper-search-advanced` | 高级筛选：年份、领域、作者、venue、open access 等（如你的 MCP 支持） |
+| `clock` agent | 生成 `run_id` 与时间戳 |
+| Claude（你自己） | 需求澄清、检索式设计、候选排序与筛选、写入 artifacts |
+
+---
+
+## 执行工作流
+
+**研究任务**：`$ARGUMENTS`
+
+### 🔍 阶段 0：问题澄清与筛选标准（必做）
+
+1. 抽取/补齐以下要素（缺失则按“默认合理值”补齐，并在 Assumptions 里声明）：
+   - 研究对象/方法/应用场景
+   - 输出目的：综述？找基线？找可复现代码？找理论脉络？
+   - 时间范围（默认：近 5 年 + 必要经典）
+   - 纳入/排除标准（默认：优先 peer-reviewed + 可获取全文/摘要）
+2. 产出 **Search Brief（检索简报）**：
+   - 主题一句话定义
+   - 3–7 个子问题（sub-questions）
+   - Inclusion / Exclusion
+   - 评估维度（方法、数据、指标、开源、影响力等）
+
+---
+
+### 🧭 阶段 1：领域扫描（可选但推荐）
+
+使用 `mcp__grok-search__web_search` 做关键词簇与术语补全：
+
+产出：
+- 关键词簇（cluster）
+- 关键术语中英对照
+- 常见缩写/同义词
+- 可能的“经典工作”线索（只做线索，不要硬写结论）
+
+> 这一步的价值：显著提高 Scholar 检索召回率与准确率。
+
+---
+
+### 🧩 阶段 2：构建检索式（必做）
+
+生成 6–12 条检索式（建议含中英两套），并说明每条意图：
+
+**检索式设计规则：**
+- 主关键词 + 同义词（OR）
+- 子方向/方法名（AND）
+- 必要时加入排除项（NOT）
+- 同时准备：
+  - **Broad Query**（高召回，用于综述）
+  - **Focused Query**（高精度，用于找基线/可复现）
+
+示例（示意）：
+- `(keywordA OR synonymA) AND (keywordB OR synonymB) AND (dataset OR benchmark)`
+- `"specific method name" AND (ablation OR benchmark)`
+
+---
+
+### 📚 阶段 3：检索论文（必做）
+
+1. 对每条 query 调用 `mcp__semantic-scholar__papers-search-basic`
+2. 若候选不足/噪声大，再用 `mcp__semantic-scholar__paper-search-advanced` 追加过滤（年份/领域/venue/open access/引用量等）
+
+**要求：**
+- 每条候选必须包含至少一个：paperId / DOI / URL
+- 记录每条候选来自哪条 query（用于解释“为什么找到它”）
+
+---
+
+### 🧹 阶段 4：去重、排序与分桶（必做）
+
+对候选池做：
+- 去重（paperId/DOI/标题近似）
+- 过滤（按纳入/排除标准）
+- 排序（建议综合分数）
+
+**推荐排序信号（可组合）：**
+- Relevance（与 query 的匹配度/关键词命中）
+- Recency（时间范围内优先）
+- Impact（引用量/venue；注意新论文引用少不等于不重要）
+- Practicality（是否有代码/数据/开源实现线索）
+
+最终将 Top 20 分成 2–4 个桶（bucket），方便用户选择：
+- 经典奠基/理论线
+- 近年 SOTA/强基线
+- 可复现/工程落地
+- 综述/系统梳理（如存在）
+
+---
+
+### 🗂️ 阶段 5：展示候选清单（必做）
+
+输出一个候选表（Top 20，或用户指定 TopK），列出必要元信息与选择建议：
+
+| # | Paper ID | Year | Title | Venue | Citations | Why it matters | PDF/URL |
+|---|---|---:|---|---|---:|---|---|
+
+并附上：
+- **推荐阅读顺序**（例如：先综述 → 再经典 → 再近年）
+- **研究空白/可做方向**（基于候选的“缺口”推断，标为 inference）
+- **下一步需要你确认的选择点**（例如：更偏方法 or 应用？是否只要开源？）
+
+---
+
+### ✅ 阶段 6：用户选择（必做）
+
+让用户选择要入库的论文（建议 3–10 篇起步）：
+
+- 允许用户按：序号 / paperId / 关键词（标题片段）选择
+- 若用户不想选：你给出 “默认入库组合”（3–5 篇）并说明理由
+
+---
+
+### 🧾 阶段 7：写入 artifacts + manifest（必做）
+
+1. 调用 `clock` agent 生成 `run_id`
+2. 写入：
+   - `artifacts/research/<run_id>.md`
+   - `artifacts/manifest/<run_id>.json`
+   - `artifacts/research/<run_id>.bib`（可选：仅对用户选中的论文生成）
+
+manifest 至少包含：
+- run_id / timestamp
+- command = `ai_research:research`
+- inputs（研究问题/范围/年份/纳入排除标准）
+- tools 调用摘要（query 列表、返回数量）
+- 候选与选择结果（paperId 列表）
+- outputs 文件路径
+
+---
+
+## 输出结构（写入 artifacts/research/<run_id>.md）
 
 ```markdown
-# Research: [Topic]
+# Research: <主题>
 
 ## Run Metadata
-...
+- run_id: <...>
+- created_at: <...>
+- command: /ai_research:research
+- tools: grok-search / semantic-scholar
+- scope: <...>
+- years: <...>
 
 ## Inputs
-- Topic: ...
+- Research Question: ...
 - Scope: ...
+- Inclusion: ...
+- Exclusion: ...
+- Notes: ...
 
 ## Output
 
-### Domain Scan (Optional)
-...
+### Domain Scan（Optional）
+- Keyword clusters:
+- Terms (CN/EN):
+- Potential classic leads:
 
 ### Search Queries
-...
+| # | Query | Intent | Notes |
+|---|------|--------|------|
 
-### Candidate Papers
-| # | Paper ID | Year | Title | Citations |
-...
+### Candidate Papers (Top 20)
+| # | Paper ID | Year | Title | Venue | Citations | Why it matters | PDF/URL |
+|---|---|---:|---|---|---:|---|---|
+
+### Recommended Reading Order
+1. ...
+2. ...
 
 ### User Selection
-...
+- Selected:
+- Rationale:
 
 ### MinerU Ingestion Instructions
-...
+- Folder plan:
+- Per-paper checklist:
+- YAML metadata template:
 
 ## Assumptions
-...
+- ...
 
 ## To Verify
-...
+- ...
 
 ## Next Actions
-...
+- [ ] ...
 ```
+
+---
+
+## 关键规则（必须遵守）
+
+1. **不编造论文条目**：每条候选必须来自检索结果，且含 paperId/DOI/URL。
+2. **先标准化再检索**：检索式必须可解释、可复用。
+3. **候选要可选择**：必须分桶/排序并给出 Why it matters。
+4. **写入 artifacts + manifest**：保证可追溯、可复用、可复盘。

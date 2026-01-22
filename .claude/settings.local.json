@@ -37,7 +37,10 @@
       "mcp__semantic-scholar__papers-search-basic",
       "Bash(git add -A)",
       "Bash(git add .claude/settings.local.json .gitignore)",
-      "Bash(git rebase --continue)"
+      "Bash(git rebase --continue)",
+      "Bash(git stash pop)",
+      "Bash(git push origin main)",
+      "Bash(git stash drop)"
     ]
   }
 }
