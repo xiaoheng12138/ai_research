@@ -1,0 +1,51 @@
+# AI Research Workflow Configuration
+# SSoT (Single Source of Truth)
+
+[core]
+version = "1.0.0"
+run_id_format = "{date}-{time}-{short}"
+
+[paths]
+prompts = ".claude/.ai_research/prompts"
+contracts = ".claude/.ai_research/contracts"
+commands = ".claude/commands/ai_research"
+agents = ".claude/agents/ai_research"
+kb_items = ".research/kb/items"
+kb_raw = ".research/kb/raw"
+kb_files = ".research/kb/files"
+artifacts = "artifacts"
+cache = ".research/cache"
+runs = ".research/runs"
+
+[models]
+orchestrator = "claude"
+backends = ["codex", "gemini"]
+
+[models.roles.claude]
+available = ["orchestrator", "research", "codeflow", "writeflow"]
+
+[models.roles.codex]
+available = ["analyze", "ideate", "code", "review"]
+
+[models.roles.gemini]
+available = ["analyze", "ideate", "draft", "review"]
+
+[commands]
+available = ["research", "analyze", "ideate", "code", "paper", "patent"]
+
+[mcp]
+grok_search = "mcp__grok-search__web_search"
+grok_fetch = "mcp__grok-search__web_fetch"
+semantic_scholar = "mcp__semantic-scholar__papers-search-basic"
+context7 = "mcp__context7__query-docs"
+
+[verification]
+gemini_facts_require_grok = true
+code_exempt_from_grok = true
+
+[limits]
+prompt_max_lines = 120
+command_max_lines = 180
+prompt_max_rules = 12
+command_max_steps = 8
+next_actions_max = 5

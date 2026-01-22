@@ -1,0 +1,53 @@
+.ace-tool/
+
+# Runtime (不入库)
+.research/cache/
+.research/logs/
+.research/runs/
+.research/tasks/*.state.json
+
+# Trace (不入库)
+.research/logs/traces/
+
+# Session state (运行时生成)
+.research/tasks/sessions.json
+
+# KB large files (optional)
+.research/kb/files/*.pdf
+
+# Artifacts (大文件不入库)
+artifacts/**/*.pdf
+artifacts/**/*.odb
+
+# 保留 artifacts 目录结构
+!artifacts/research/.gitkeep
+!artifacts/analyze/.gitkeep
+!artifacts/ideate/.gitkeep
+!artifacts/code/.gitkeep
+!artifacts/paper/.gitkeep
+!artifacts/patent/.gitkeep
+!artifacts/manifest/.gitkeep
+
+# UI 运行态 (如有)
+.claude/.research/ui/ccg-webui/node_modules/
+.claude/.research/ui/ccg-webui/dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

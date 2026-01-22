@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(ccg:plan)",
+      "mcp__ace-tool__enhance_prompt",
+      "mcp__ace-tool__search_context",
+      "Bash(dir /s /b \"C:\\\\Users\\\\ljh\\\\Desktop\\\\ai_research\\\\src\")",
+      "Bash(dir:*)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\ljh\\\\Desktop\\\\ai_research\" -Directory -Name)",
+      "Bash(Select-Object -First 30)",
+      "Bash(Select-Object -First 50)",
+      "Bash(findstr:*)",
+      "mcp__grok-search__web_fetch",
+      "WebFetch(domain:github.com)",
+      "mcp__grok-search__web_search",
+      "Bash(ls:*)",
+      "Bash(C:/Users/ljh/.claude/bin/codeagent-wrapper.exe --help)",
+      "Bash(C:/Users/ljh/.claude/bin/codeagent-wrapper.exe:*)",
+      "Skill(ccg:execute)",
+      "Bash(where:*)",
+      "Bash(codeagent-wrapper.exe --help:*)",
+      "Bash(codeagent-wrapper --backend codex - \"C:/Users/ljh/Desktop/ai_research\" <<'EOF'\nROLE_FILE: .claude/.research/prompts/codex/reviewer.md\n\n## 审查任务：De-CCG 清理完整性验证\n\n请审查以下 De-CCG 清理工作的完整性，确保所有 `.ccg` 引用和绝对路径已被正确识别和规划清理：\n\n### 清理报告摘要\n\n| 类别 | 文件数 | 需清理项数 |\n|------|--------|------------|\n| 命令文件 | 17 | 68 |\n| 协议文件 | 1 | 14 |\n| 设置文件 | 2 | 6 |\n| 计划文件 | 2 | 18 \\(参考/示例，可保留\\) |\n| 文档文件 | 2 | 2 \\(参考/示例，可保留\\) |\n| **总计** | **24** | **108** |\n\n### 需验证的问题\n\n1. **扫描完整性**：是否存在遗漏的 `.ccg` 引用或绝对路径？\n2. **替换模式正确性**：\n   - `C:/Users/ljh/.claude/bin/codeagent-wrapper.exe` → `codeagent-wrapper`\n   - `C:/Users/ljh/.claude/.ccg/prompts/codex/` → `.claude/.research/prompts/codex/`\n   - `C:/Users/ljh/.claude/.ccg/prompts/gemini/` → `.claude/.research/prompts/gemini/`\n3. **白名单合理性**：计划文件和文档文件保留是否合理？\n4. **lint 脚本覆盖**：`scripts/lint_no_ccg_refs.py` 的检测模式是否完整？\n5. **新创建文件检查**：新创建的 Model Bridge 模块和 Agent 定义中是否有硬编码路径？\n\n### 新创建的文件列表\n\n**Model Bridge 模块** \\(`src/research_workflow_assistant/bridge/`\\):\n- `__init__.py`\n- `trace_writer.py`\n- `session_store.py`\n- `model_bridge.py`\n- `run.py`\n\n**Agent 定义** \\(`.claude/agents/research/`\\):\n- `literature-synthesis.md`\n- `methodology-design.md`\n- `data-analysis.md`\n- `visualization.md`\n- `writing-assistant.md`\n- `validation-review.md`\n- `planning-coordinator.md`\n- `evidence-gate.md`\n\n请扫描项目并验证清理工作的完整性。\n\nOUTPUT: 按 Critical/Major/Minor/Suggestion 分类列出发现的问题\nEOF)",
+      "Bash(python scripts/lint_no_ccg_refs.py --json)",
+      "mcp__semantic-scholar__paper-search-advanced",
+      "mcp__semantic-scholar__search-arxiv",
+      "mcp__semantic-scholar__get-paper-abstract",
+      "Bash(git add .)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: AI Research Workflow Assistant\n\n- Research workflow configuration and commands\n- Multi-model collaboration bridge \\(Codex/Gemini\\)\n- Literature management and simulation tools\n- Project documentation and scripts\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(gh repo create ai_research --public --source=/c/Users/ljh/Desktop/ai_research --push)",
+      "Bash(cmd.exe /c \"where gh\")",
+      "Bash(/c/Program Files/GitHub CLI/gh.exe repo create ai_research --public --source=. --push)",
+      "Bash(gh.exe repo create ai_research --public --source=. --push)",
+      "Bash(cmd.exe /c \"gh repo create ai_research --public --source=. --push\")",
+      "Bash(git config --global user.name)",
+      "Bash(git config --global user.email)",
+      "Bash(git push -u origin main)",
+      "mcp__semantic-scholar__papers-search-basic",
+      "Bash(git add -A)",
+      "Bash(git add .claude/settings.local.json .gitignore)",
+      "Bash(git rebase --continue)"
+    ]
+  }
+}

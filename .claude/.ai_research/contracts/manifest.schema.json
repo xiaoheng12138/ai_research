@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Research Manifest",
+  "type": "object",
+  "required": [
+    "run_id",
+    "created_at",
+    "command",
+    "models_used",
+    "mcp_used",
+    "inputs",
+    "artifacts",
+    "verification",
+    "next_actions"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "pattern": "^[0-9]{8}-[0-9]{6}-[a-z0-9]{4,8}$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "command": {
+      "type": "string",
+      "enum": [
+        "ai_research:research",
+        "ai_research:analyze",
+        "ai_research:ideate",
+        "ai_research:code",
+        "ai_research:paper",
+        "ai_research:patent"
+      ]
+    },
+    "models_used": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["backend", "role"],
+        "properties": {
+          "backend": {
+            "type": "string",
+            "enum": ["claude", "codex", "gemini"]
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "mcp_used": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tool", "purpose", "invoked"],
+        "properties": {
+          "tool": { "type": "string" },
+          "purpose": { "type": "string" },
+          "invoked": { "type": "boolean" }
+        }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "required": ["user_request", "kb_refs", "files"],
+      "properties": {
+        "user_request": { "type": "string" },
+        "kb_refs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "files": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "type"],
+        "properties": {
+          "path": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["primary_md", "manifest", "patch", "bib"]
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["facts_checked", "tool", "status", "notes"],
+      "properties": {
+        "facts_checked": { "type": "integer" },
+        "tool": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["verified", "uncertain", "refuted", "n/a"]
+        },
+        "notes": { "type": "string" }
+      }
+    },
+    "next_actions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 5
+    }
+  }
+}
