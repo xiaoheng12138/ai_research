@@ -1,73 +1,254 @@
-# /ai_research:ideate
+---
+description: '想法生成（并行执行）：Codex 提供可执行/可验证方案 + Gemini 提供发散创意；Claude 聚类去重、排序 Top5，并给出最小验证实验与 manifest'
+---
 
-## Purpose
+# /ai_research:ideate - 多模型想法生成与评估
 
-Generate and evaluate ideas through multi-model collaboration.
+面向**研究选题 / 产品方向 / 技术方案 / 实验路径**的系统化 ideation：Codex 侧重“可落地、可验证、可量化”，Gemini 侧重“发散、类比、换框架”，Claude 负责去重聚类、评估排序，并产出 **Top 5 + 最小实验计划**，同时写入可复盘的 artifacts + manifest。
 
-## Inputs
+---
 
-1. **Problem Statement** (required): What problem to solve?
-2. **Constraints** (optional): Any limitations or requirements?
-3. **KB References** (optional): Context from existing research?
+## 使用方法
 
-## Steps
+```bash
+/ai_research:ideate <要解决的问题或目标>
+```
 
-1. **Generate run_id**: Call `clock` agent.
-2. **Problem Restatement**: Clarify the problem in 1-5 lines.
-3. **Parallel Ideation**: Launch Codex(ideate) ∥ Gemini(ideate).
-4. **Claude Synthesis**: Deduplicate, cluster, rank top 5 ideas.
-5. **Experiment Planning**: Define 1-3 minimal validation experiments.
-6. **Record Manifest**: Log models and process.
-7. **Output Artifacts**: Write to `artifacts/ideate/<run_id>.md` + manifest.
+---
 
-## Tools
+## 你的角色
 
-| Tool | Purpose |
-|------|---------|
-| `clock` agent | Generate run_id |
-| Codex(ideate) | Actionable, testable ideas |
-| Gemini(ideate) | Creative, divergent ideas |
+你是**创意与方案协调者**，需要做到：
 
-## Outputs
+- **发散**：覆盖不同路径（技术/产品/数据/流程）
+- **收敛**：用明确标准挑 Top 5（价值/可行性/验证成本）
+- **可验证**：每个 Top idea 必须带最小实验（1–2 周内可验证）
+- **可追溯**：记录 Assumptions / To Verify / Next Actions + manifest
 
-- `artifacts/ideate/<run_id>.md` (primary)
-- `artifacts/manifest/<run_id>.json` (manifest)
+---
 
-## Output Structure
+## 多模型调用规范（并行）
+
+> 目标：**并行获取两份互补 Idea Pool → Claude 去重聚类与排序 → 产出最小实验计划**。  
+> 原则：**必须等 Codex 与 Gemini 都返回后才能进入综合阶段。**
+
+### 统一调用语法（示例）
+
+```
+Bash({
+  command: "~/.claude/bin/codeagent-wrapper {{LITE_MODE_FLAG}}--backend <codex|gemini> - "$PWD" <<'EOF'
+ROLE_FILE: <角色提示词路径>
+<TASK>
+run_id: <由 clock 生成>
+问题：<Problem Statement>
+上下文：<现有方案/已有结论/KB refs 摘要/目标用户或场景>
+约束：<时间/资源/合规/技术栈/必须避免的方向>
+评估维度：<价值/可行性/验证成本/风险>
+</TASK>
+OUTPUT: 期望输出格式（见下方“模型输出契约”）
+EOF",
+  run_in_background: true,
+  timeout: 3600000,
+  description: "并行 ideation"
+})
+```
+
+### 等待后台任务
+
+```
+TaskOutput({ task_id: "<task_id>", block: true, timeout: 600000 })
+```
+
+---
+
+## 角色提示词
+
+| 模型 | role | ROLE_FILE |
+|---|---|---|
+| Codex | ideate | `.claude/.ai_research/prompts/codex/ideate.md` |
+| Gemini | ideate | `.claude/.ai_research/prompts/gemini/ideate.md` |
+
+---
+
+## 模型输出契约
+
+### Codex(ideate) 输出格式（偏可执行/可验证）
+
+- **Ideas（最多 10 条）**：每条必须包含
+  - Idea 名称 + 1 句摘要
+  - 研究对象
+  - 关键机制/技术路线（尽量具体）
+  - 最小验证实验（MVP/PoC）：输入、方法、指标、预期结果、失败判据
+  - 主要风险/依赖
+- **Assumptions / To Verify**：假设与待核对点（没有也要写 None）
+- **Recommended Top 3（可选）**：Codex 自己的优先级建议与理由
+
+### Gemini(ideate) 输出格式（偏发散/换框架）
+
+- **Alternative Framings（2–5条）**：用不同视角重述问题（可触发新解）
+- **Idea Sparks（最多 10 条）**：更大胆/跨域类比/反直觉方案也可以
+- **Potential Levers**：可能的杠杆点（数据、网络效应、交互、渠道、工程技巧）
+- **Risks / Unknowns**：容易踩坑点
+- **Claim Ledger（若有事实性断言）**：列出需要核验的断言关键词
+
+---
+
+## 执行工作流
+
+**问题/目标**：`$ARGUMENTS`
+
+### 🔍 阶段 0：生成 run_id + 问题对齐与成功标准（必做）
+
+1. 调用 `clock` agent 生成 `run_id`（格式：`YYYYMMDD-HHMMSS-<short>`），并在后续所有模型调用与落盘中复用。
+2. 将 `$ARGUMENTS` 重述为：
+   - 要解决的核心问题（1–5 行）
+   - 成功标准（指标/里程碑）
+   - 硬约束（时间、预算、技术栈、合规）
+2. 给出 **Ideation Rubric**（用于排序）：
+   - Value
+   - Feasibility
+   - Validation Cost
+   - Risk
+---
+
+### 📦 阶段 1：上下文构建（必做）
+
+按优先级收集（缺失就标注“缺失”）：
+
+- KB References（已有研究/笔记/历史决策）
+- 已尝试方案与失败经验
+- 可用资源（数据/算力/人力/上线渠道）
+- 不能触碰的限制（合规/隐私/安全）
+
+形成一个 **Inputs Block**（供 Codex/Gemini 共用）。
+
+---
+
+### 🧠 阶段 2：Claude Preliminary（必做）
+
+并行前，Claude 先给出：
+
+- 初步理解（2–5 句）
+- Ideation 维度建议（例如：数据驱动/模型驱动/流程驱动/交互驱动）
+- 3–7 个“关键问题”（用来判断想法好坏）
+- 风险旗标（3–5 条）：最常见失败原因
+
+---
+
+### ⚡ 阶段 3：并行 ideation（必做）
+
+并行发起：
+1. **Codex(ideate)**：偏“可执行/可验证/工程约束友好”
+2. **Gemini(ideate)**：偏“发散/跨域类比/替代框架”
+
+等待两者完整返回（见“多模型调用规范”）。
+
+---
+
+### ✅ 阶段 4：去重聚类与排序（必做）
+
+Claude 对两份 Idea Pool：
+
+1. 去重合并（同义合并、不同表述归一）
+2. 聚类（按路线/资源/用户群/技术栈分组）
+3. 评估打分并选出 **Top 5**
+4. 将所有事实性断言归入：
+   - **Fact（上下文/材料内）**
+   - **Inference（推断）**
+   - **Hypothesis（假设）**
+   - **To Verify（待验证）**
+
+---
+
+### 🧪 阶段 5：最小验证实验计划（必做）
+
+为 Top 5 中优先级最高的 1–3 个想法，给出：
+
+- 实验目标与假设
+- 最小实现路径（MVP/PoC）
+- 数据/样本需求
+- 指标与阈值（成功/失败判据）
+- 时间盒（例如 2–5 天 / 1–2 周）
+- 风险控制（隐私/安全/成本）
+
+---
+
+### 🧾 阶段 6：写入 artifacts + manifest（必做）
+
+1. 使用阶段 0 生成的 `run_id` 写入：
+   - `artifacts/ideate/<run_id>.md`
+   - `artifacts/manifest/<run_id>.json`
+
+manifest 至少包含：
+- run_id / created_at / command = `ai_research:ideate`
+- inputs（问题、约束、kb_refs）
+- models_used（Codex(ideate)、Gemini(ideate)）
+- outputs（md/manifest 路径）
+- next_actions（<= 5 条）
+
+---
+
+## 输出结构（写入 artifacts/ideate/<run_id>.md）
 
 ```markdown
-# Ideation: [Problem]
+# Ideation: <问题/目标标题>
 
 ## Run Metadata
-...
+- run_id: <...>
+- created_at: <...>
+- command: /ai_research:ideate
+- models: Claude + Codex(ideate) + Gemini(ideate)
 
 ## Inputs
-...
+- Problem Statement: ...
+- Constraints: ...
+- KB References:
+  - ...
 
 ## Output
 
 ### Problem Restatement
 ...
 
+### Claude Preliminary
+- Understanding:
+- Key Questions:
+- Risk Flags:
+
 ### Idea Pool (Codex)
-...
+- ...
 
 ### Idea Pool (Gemini)
-...
+- ...
 
-### Claude Synthesis (Top-N)
-| # | Idea | Value | Feasibility | Experiment | Risk |
-...
+### Claude Synthesis (Top-5)
+| # | Idea | Value | Feasibility | Validation Experiment | Risk |
+|---|------|-------|-------------|-----------------------|------|
+| 1 | ...  | ...   | ...         | ...                   | ...  |
 
 ### Minimal Experiment Plan
-...
+- Experiment 1: ...
+- Experiment 2: ...
+- Experiment 3: ...
 
 ## Assumptions
-...
+- ...
 
 ## To Verify
-...
+- ...
 
 ## Next Actions
-...
+- [ ] P0: ...
+- [ ] P1: ...
+- [ ] P2: ...
 ```
+
+---
+
+## 关键规则（必须遵守）
+
+1. **Top idea 必须可验证**：每条 Top 5 都要给出最小实验与失败判据。
+2. **不把假设写成事实**：所有不确定点放入 To Verify。
+3. **并行必等待**：Codex 与 Gemini 都返回后再综合排序。
+4. **输出要可执行**：Next Actions <= 5 条，优先 P0 可立即做的事。
+5. **必须落盘**：生成 artifacts + manifest，保证可复盘与可迁移。
